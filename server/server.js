@@ -250,7 +250,13 @@ app.post('/api/tasks', async (req, res) => {
 
     if (teleConfig.botToken && targetChatId && teleConfig.notifyOnTaskCreate !== false) {
       const message = buildTaskAssignedMessage(newTask, project, assignee, newTask.createdBy);
-      const result = await sendTelegramNotification(teleConfig.botToken, targetChatId, message);
+      let result = await sendTelegramNotification(teleConfig.botToken, targetChatId, message);
+      
+      // Automatic fallback to default global channel if individual member DM fails
+      if (!result.success && defaultChatId && targetChatId !== defaultChatId) {
+        result = await sendTelegramNotification(teleConfig.botToken, defaultChatId, message);
+      }
+
       telegramLogStatus = result.success ? 'Sent ✅' : `Failed: ${result.error}`;
     }
 
@@ -295,7 +301,13 @@ app.patch('/api/tasks/:id', async (req, res) => {
     if (updateFields.status && updateFields.status !== oldTask.status) {
       if (teleConfig.botToken && targetChatId && teleConfig.notifyOnStatusChange !== false) {
         const message = buildTaskStatusMessage(updatedTask, project, oldTask.status, updatedTask.status, updatedBy || 'Team Member');
-        const sendResult = await sendTelegramNotification(teleConfig.botToken, targetChatId, message);
+        let sendResult = await sendTelegramNotification(teleConfig.botToken, targetChatId, message);
+        
+        // Automatic fallback to default global channel if individual member DM fails
+        if (!sendResult.success && defaultChatId && targetChatId !== defaultChatId) {
+          sendResult = await sendTelegramNotification(teleConfig.botToken, defaultChatId, message);
+        }
+
         telegramLogStatus = sendResult.success ? 'Sent ✅' : `Failed: ${sendResult.error}`;
       } else {
         telegramLogStatus = 'Skipped (No Config)';
