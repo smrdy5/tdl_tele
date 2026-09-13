@@ -242,7 +242,9 @@ app.post('/api/tasks', async (req, res) => {
     const project = projects.find(p => p.id === newTask.projectId);
     const assignee = teamMembers.find(m => m.id === newTask.assigneeId);
     
-    const targetChatId = (assignee && assignee.telegramChatId) ? assignee.telegramChatId : teleConfig.defaultChatId;
+    const assigneeChatId = assignee && assignee.telegramChatId ? String(assignee.telegramChatId).trim() : '';
+    const defaultChatId = teleConfig && teleConfig.defaultChatId ? String(teleConfig.defaultChatId).trim() : '';
+    const targetChatId = assigneeChatId || defaultChatId;
 
     let telegramLogStatus = 'Skipped (No Config)';
 
@@ -283,7 +285,10 @@ app.patch('/api/tasks/:id', async (req, res) => {
 
     const project = projects.find(p => p.id === updatedTask.projectId);
     const assignee = teamMembers.find(m => m.id === updatedTask.assigneeId);
-    const targetChatId = (assignee && assignee.telegramChatId) ? assignee.telegramChatId : teleConfig.defaultChatId;
+
+    const assigneeChatId = assignee && assignee.telegramChatId ? String(assignee.telegramChatId).trim() : '';
+    const defaultChatId = teleConfig && teleConfig.defaultChatId ? String(teleConfig.defaultChatId).trim() : '';
+    const targetChatId = assigneeChatId || defaultChatId;
 
     let telegramLogStatus = 'N/A';
 

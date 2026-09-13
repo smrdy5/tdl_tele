@@ -11,10 +11,19 @@ export async function sendTelegramNotification(botToken, chatId, messageText) {
 
   const cleanToken = String(botToken || '').trim().replace(/^["']|["']$/g, '');
   const cleanChatId = String(chatId || '').trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '');
+  
+  if (!cleanToken || !cleanChatId) {
+    return {
+      success: false,
+      error: 'Invalid Bot Token or Chat ID format.'
+    };
+  }
+
   const url = `https://api.telegram.org/bot${cleanToken}/sendMessage`;
 
   try {
-    const response = await fetch(url, {
+    // Attempt 1: Send formatted HTML message
+    let response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,12 +36,40 @@ export async function sendTelegramNotification(botToken, chatId, messageText) {
       }),
     });
 
-    const data = await response.json();
+    let data = await response.json();
+
+    // Attempt 2: Fallback to plain text if HTML parsing failed
+    if (!data.ok && data.description && (data.description.includes('parse') || data.description.includes('entity'))) {
+      const plainText = messageText.replace(/<[^>]*>/g, '');
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: cleanChatId,
+          text: plainText,
+          disable_web_page_preview: true
+        }),
+      });
+      data = await response.json();
+    }
 
     if (!data.ok) {
+      let friendlyError = data.description || 'Failed to send Telegram message';
+      if (friendlyError.includes('chat not found')) {
+        friendlyError = 'Chat ID not found. Make sure your bot is added to the channel/group as an Admin.';
+      } else if (friendlyError.includes('Unauthorized')) {
+        friendlyError = 'Invalid Bot Token. Check the token from @BotFather.';
+      } else if (friendlyError.includes('bot was blocked')) {
+        friendlyError = 'Bot was blocked by the user or channel.';
+      } else if (friendlyError.includes('not a member') || friendlyError.includes('administrator')) {
+        friendlyError = 'Bot is not a member or Admin of the Telegram channel.';
+      }
+
       return {
         success: false,
-        error: data.description || 'Failed to send Telegram message'
+        error: friendlyError
       };
     }
 
