@@ -1,0 +1,53 @@
+{
+  "projects": [
+    {
+      "id": "proj-1",
+      "name": "AI Invoice Generation for M.Y.H Business and Tax Consultant",
+      "code": "AI-MYH",
+      "status": "Active",
+      "startDate": "2026-09-13",
+      "endDate": "2026-12-31",
+      "assignedTeamCount": 0,
+      "description": "AI-powered automated invoice processing, OCR data extraction, and tax consulting portal system."
+    }
+  ],
+  "teamMembers": [
+    {
+      "id": "member-1789278899564",
+      "activeTasks": 0,
+      "avatar": "TA",
+      "name": "Test Admin",
+      "email": "admin@myh.com",
+      "role": "Project Manager",
+      "telegramChatId": "",
+      "salt": "4e6df1eb967dacb36f976015a1906d60",
+      "passwordHash": "55729a1d16a829a5c7c9079d41541ff4c8588b6fa70270e48b5d880488f3201f53a79998d441e5b2647e510c4a92d44e72f093ec2362dad2bb620940ca50f7b3"
+    }
+  ],
+  "tasks": [],
+  "telegramConfig": {
+    "botToken": "",
+    "defaultChatId": "",
+    "notifyOnTaskCreate": true,
+    "notifyOnStatusChange": true,
+    "notifyOnTimeLog": true
+  },
+  "activityLogs": [
+    {
+      "id": "log-1789278906533",
+      "timestamp": "2026-09-13 05:55:06",
+      "user": "System",
+      "action": "User Login",
+      "details": "User logged in: Test Admin",
+      "telegramStatus": "N/A"
+    },
+    {
+      "id": "log-1789278899566",
+      "timestamp": "2026-09-13 05:54:59",
+      "user": "System",
+      "action": "User Registered",
+      "details": "New user registered: Test Admin (admin@myh.com)",
+      "telegramStatus": "N/A"
+    }
+  ]
+}
