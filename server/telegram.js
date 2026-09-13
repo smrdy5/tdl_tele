@@ -130,6 +130,47 @@ export function buildTaskStatusMessage(task, project, oldStatus, newStatus, upda
     `<i>Capstone Project Portal - M.Y.H Business & Tax Consultant</i>`;
 }
 
+// Build task deleted message
+export function buildTaskDeletedMessage(task, project, deletedBy) {
+  return `<b>🗑️ TASK DELETED</b>\n` +
+    `----------------------------------------\n` +
+    `<b>Task:</b> ${escapeHtml(task.title)}\n` +
+    `<b>Project:</b> 📁 ${escapeHtml(project ? project.name : 'General')}\n` +
+    `<b>Assignee:</b> 👤 ${escapeHtml(task.assigneeName || 'Unassigned')}\n` +
+    `<b>Deleted By:</b> 👨‍💻 ${escapeHtml(deletedBy || 'Admin')}\n` +
+    `----------------------------------------\n` +
+    `<i>Capstone Project Portal - M.Y.H Business & Tax Consultant</i>`;
+}
+
+// Helper to delete a specific message from Telegram channel / chat
+export async function deleteTelegramMessage(botToken, chatId, messageId) {
+  if (!botToken || !chatId || !messageId) {
+    return { success: false, error: 'Missing parameters' };
+  }
+
+  const cleanToken = String(botToken || '').trim().replace(/^["']|["']$/g, '');
+  const cleanChatId = String(chatId || '').trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '');
+  const url = `https://api.telegram.org/bot${cleanToken}/deleteMessage`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: cleanChatId,
+        message_id: Number(messageId)
+      }),
+    });
+
+    const data = await response.json();
+    return { success: data.ok, data: data.result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
 // ----------------------------------------------------------------------------
 // Interactive 24/7 Telegram Polling Engine & Always-Reply Bot Handler
 // ----------------------------------------------------------------------------

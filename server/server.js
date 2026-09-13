@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { db } from './db.js';
 import { gsheetDb } from './gsheet_db.js';
 import { hashPassword, verifyPassword } from './auth.js';
-import { sendTelegramNotification, buildTaskAssignedMessage, buildTaskStatusMessage, startTelegramPolling } from './telegram.js';
+import { sendTelegramNotification, buildTaskAssignedMessage, buildTaskStatusMessage, buildTaskDeletedMessage, deleteTelegramMessage, startTelegramPolling } from './telegram.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -257,6 +257,12 @@ app.post('/api/tasks', async (req, res) => {
         result = await sendTelegramNotification(teleConfig.botToken, defaultChatId, message);
       }
 
+      if (result.success && result.data && result.data.message_id) {
+        newTask.telegramMessageId = result.data.message_id;
+        newTask.telegramChatId = targetChatId;
+        await gsheetDb.updateTask(newTask.id, { telegramMessageId: result.data.message_id, telegramChatId: targetChatId });
+      }
+
       telegramLogStatus = result.success ? 'Sent ✅' : `Failed: ${result.error}`;
     }
 
@@ -335,12 +341,42 @@ app.patch('/api/tasks/:id', async (req, res) => {
 });
 
 app.delete('/api/tasks/:id', async (req, res) => {
-  const removed = await gsheetDb.deleteTask(req.params.id);
+  const taskId = req.params.id;
+  const { deletedBy } = req.query;
+
+  const tasks = await gsheetDb.getTasks();
+  const taskToDelete = tasks.find(t => t.id === taskId);
+
+  const removed = await gsheetDb.deleteTask(taskId);
   if (!removed) {
     return res.status(404).json({ error: 'Task not found' });
   }
-  await gsheetDb.addActivityLog('Admin', 'Task Deleted', `Deleted task '${removed.title}'`, 'N/A');
-  res.json({ success: true, removed });
+
+  const teleConfig = await gsheetDb.getTelegramConfig();
+  const projects = await gsheetDb.getProjects();
+  const targetTask = taskToDelete || removed;
+  const project = projects.find(p => p.id === targetTask.projectId);
+
+  let telegramLogStatus = 'N/A';
+
+  if (teleConfig.botToken) {
+    const targetChatId = targetTask.telegramChatId || teleConfig.defaultChatId;
+
+    // 1. Delete original assignment message from Telegram chat if message_id exists
+    if (targetTask.telegramMessageId && targetChatId) {
+      await deleteTelegramMessage(teleConfig.botToken, targetChatId, targetTask.telegramMessageId);
+    }
+
+    // 2. Send 🗑️ TASK DELETED push notification to Telegram channel/group
+    if (targetChatId) {
+      const msg = buildTaskDeletedMessage(targetTask, project, deletedBy || 'Admin');
+      const sendRes = await sendTelegramNotification(teleConfig.botToken, targetChatId, msg);
+      telegramLogStatus = sendRes.success ? 'Sent & Deleted ✅' : `Failed: ${sendRes.error}`;
+    }
+  }
+
+  await gsheetDb.addActivityLog(deletedBy || 'Admin', 'Task Deleted', `Deleted task '${removed.title}'`, telegramLogStatus);
+  res.json({ success: true, removed, telegramDelivery: telegramLogStatus });
 });
 
 // ----------------------------------------------------

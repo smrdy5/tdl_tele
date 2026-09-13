@@ -141,10 +141,10 @@ export default function App() {
   const handleDeleteTask = async (taskId) => {
     if (!confirm('Are you sure you want to delete this task?')) return;
     try {
-      await axios.delete(`/api/tasks/${taskId}`);
+      const res = await axios.delete(`/api/tasks/${taskId}?deletedBy=${encodeURIComponent(currentUser?.name || 'Admin')}`);
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       fetchData();
-      showToast('Task deleted', 'info');
+      showToast('Task deleted & Telegram notification updated! 🗑️', 'info');
     } catch (err) {
       showToast('Failed to delete task', 'error');
     }
