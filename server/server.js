@@ -1,15 +1,33 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { db } from './db.js';
 import { gsheetDb } from './gsheet_db.js';
 import { hashPassword, verifyPassword } from './auth.js';
 import { sendTelegramNotification, buildTaskAssignedMessage, buildTaskStatusMessage } from './telegram.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDistPath = path.join(__dirname, '../client/dist');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// ----------------------------------------------------
+// Root & Health Check Routes
+// ----------------------------------------------------
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'online',
+    system: 'Capstone Project Portal API',
+    timestamp: new Date()
+  });
+});
 
 // ----------------------------------------------------
 // System & Data Reset APIs
@@ -55,7 +73,6 @@ app.post('/api/auth/register', async (req, res) => {
     const newMember = await gsheetDb.addTeamMember(newMemberData);
     await gsheetDb.addActivityLog('System', 'User Registered', `New user registered: ${newMember.name} (${cleanEmail})`, 'N/A');
 
-    // Return sanitized user object (never return salt or passwordHash)
     const sanitizedUser = {
       id: newMember.id,
       name: newMember.name,
@@ -86,7 +103,6 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    // Check password hash if stored, or allow secure match
     if (member.salt && member.passwordHash) {
       const isValid = verifyPassword(password, member.salt, member.passwordHash);
       if (!isValid) {
@@ -152,7 +168,6 @@ app.get('/api/projects', async (req, res) => {
 // ----------------------------------------------------
 app.get('/api/team', async (req, res) => {
   const members = await gsheetDb.getTeamMembers();
-  // Strip security credentials before sending to client
   const sanitized = members.map(m => ({
     id: m.id,
     name: m.name,
@@ -356,6 +371,41 @@ app.get('/api/activity', async (req, res) => {
   const logs = await gsheetDb.getActivityLogs();
   res.json(logs);
 });
+
+// ----------------------------------------------------
+// Static Client Serving & Root Catch-all Route
+// ----------------------------------------------------
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Capstone Project Portal API</title>
+          <style>
+            body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .card { background: #1e293b; padding: 2rem; border-radius: 1rem; border: 1px solid #334155; text-align: center; max-width: 480px; }
+            h1 { color: #38bdf8; margin-top: 0; }
+            code { background: #0f172a; padding: 0.2rem 0.4rem; border-radius: 0.25rem; color: #4ade80; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>🚀 Capstone Project Portal API</h1>
+            <p>The Express backend is live and healthy 🟢</p>
+            <p>API endpoints are available at <code>/api/projects</code>, <code>/api/tasks</code>, <code>/api/team</code>, etc.</p>
+          </div>
+        </body>
+      </html>
+    `);
+  });
+}
 
 // Start Server
 app.listen(PORT, () => {
