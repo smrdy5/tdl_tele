@@ -29,9 +29,11 @@ export default function GoogleSheetSettingsModal({ isOpen, onClose, gsheetConfig
       const res = await axios.post('/api/gsheet/test', { webAppUrl });
       setTestResult({ success: true, message: res.data.message });
     } catch (err) {
+      const errVal = err.response?.data?.error || err.response?.data || err.message;
+      const errMsg = typeof errVal === 'object' ? (errVal.message || errVal.error || JSON.stringify(errVal)) : (errVal || 'Failed to connect to Google Sheet Web App.');
       setTestResult({
         success: false,
-        error: err.response?.data?.error || 'Failed to connect to Google Sheet Web App.'
+        error: errMsg
       });
     } finally {
       setTestLoading(false);
@@ -82,7 +84,7 @@ export default function GoogleSheetSettingsModal({ isOpen, onClose, gsheetConfig
             )}
             <div>
               <div className="font-bold">{testResult.success ? 'Connected!' : 'Connection Failed'}</div>
-              <div>{testResult.success ? testResult.message : testResult.error}</div>
+              <div>{testResult.success ? testResult.message : (typeof testResult.error === 'object' ? (testResult.error.message || JSON.stringify(testResult.error)) : String(testResult.error))}</div>
             </div>
           </div>
         )}

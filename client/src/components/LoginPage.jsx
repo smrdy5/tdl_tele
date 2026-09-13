@@ -45,7 +45,9 @@ export default function LoginPage({ onLogin }) {
       }
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.error || 'Invalid email or password.');
+      const errVal = err.response?.data?.error || err.response?.data || err.message;
+      const errMsg = typeof errVal === 'object' ? (errVal.message || errVal.error || JSON.stringify(errVal)) : (errVal || 'Invalid email or password.');
+      setError(errMsg);
     }
   };
 
@@ -88,7 +90,9 @@ export default function LoginPage({ onLogin }) {
       }, 600);
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.error || 'Failed to create account. Please try again.');
+      const errVal = err.response?.data?.error || err.response?.data || err.message;
+      const errMsg = typeof errVal === 'object' ? (errVal.message || errVal.error || JSON.stringify(errVal)) : (errVal || 'Failed to create account. Please try again.');
+      setError(errMsg);
     }
   };
 
@@ -165,7 +169,7 @@ export default function LoginPage({ onLogin }) {
 
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
-              {error}
+              {typeof error === 'object' ? (error.message || JSON.stringify(error)) : String(error)}
             </div>
           )}
 

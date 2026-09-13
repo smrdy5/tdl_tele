@@ -34,9 +34,11 @@ export default function TelegramSettingsModal({ isOpen, onClose, config, onSaveC
       const res = await axios.post('/api/telegram/test', { botToken, chatId: defaultChatId });
       setTestResult({ success: true, message: res.data.message });
     } catch (err) {
+      const errVal = err.response?.data?.error || err.response?.data || err.message;
+      const errMsg = typeof errVal === 'object' ? (errVal.message || errVal.error || JSON.stringify(errVal)) : (errVal || 'Failed to send Telegram test message.');
       setTestResult({
         success: false,
-        error: err.response?.data?.error || 'Failed to send Telegram test message.'
+        error: errMsg
       });
     } finally {
       setTestLoading(false);
@@ -92,7 +94,7 @@ export default function TelegramSettingsModal({ isOpen, onClose, config, onSaveC
             )}
             <div>
               <div className="font-bold">{testResult.success ? 'Success!' : 'Connection Error'}</div>
-              <div>{testResult.success ? testResult.message : testResult.error}</div>
+              <div>{testResult.success ? testResult.message : (typeof testResult.error === 'object' ? (testResult.error.message || JSON.stringify(testResult.error)) : String(testResult.error))}</div>
             </div>
           </div>
         )}

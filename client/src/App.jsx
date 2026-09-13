@@ -260,7 +260,7 @@ export default function App() {
             >
               <div className="flex items-center gap-3 font-semibold text-sm">
                 <Send className="w-5 h-5" />
-                <span>{toast.message}</span>
+                <span>{typeof toast.message === 'object' ? (toast.message?.message || JSON.stringify(toast.message)) : String(toast.message)}</span>
               </div>
               <button onClick={() => setToast(null)} className="text-white/80 hover:text-white font-bold">
                 ✕
