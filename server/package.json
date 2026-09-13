@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "build": "npm install",
-    "dev": "node --watch server.js"
+    "dev": "npm install && node server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
