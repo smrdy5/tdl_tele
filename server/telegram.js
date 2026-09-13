@@ -59,6 +59,8 @@ export async function sendTelegramNotification(botToken, chatId, messageText) {
       let friendlyError = data.description || 'Failed to send Telegram message';
       if (friendlyError.includes('chat not found')) {
         friendlyError = 'Chat ID not found. Make sure your bot is added to the channel/group as an Admin.';
+      } else if (friendlyError.includes('bot can\'t initiate conversation') || friendlyError.includes('initiate conversation')) {
+        friendlyError = 'User has not started the bot yet. Search for your bot in Telegram and click /start first!';
       } else if (friendlyError.includes('Unauthorized')) {
         friendlyError = 'Invalid Bot Token. Check the token from @BotFather.';
       } else if (friendlyError.includes('bot was blocked')) {
