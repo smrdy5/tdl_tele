@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { db } from './db.js';
 import { gsheetDb } from './gsheet_db.js';
 import { hashPassword, verifyPassword } from './auth.js';
-import { sendTelegramNotification, buildTaskAssignedMessage, buildTaskStatusMessage } from './telegram.js';
+import { sendTelegramNotification, buildTaskAssignedMessage, buildTaskStatusMessage, startTelegramPolling } from './telegram.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -432,6 +432,20 @@ if (fs.existsSync(clientDistPath)) {
 }
 
 // Start Server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 Task Manager API backend running on http://localhost:${PORT}`);
+  
+  // Initialize 24/7 Always-Reply Telegram Polling Engine
+  startTelegramPolling(
+    () => {
+      try {
+        const config = db.getTelegramConfig();
+        if (config && config.botToken) return config.botToken;
+      } catch (e) {}
+      return process.env.TELEGRAM_BOT_TOKEN || '';
+    },
+    async () => await gsheetDb.getTasks(),
+    async () => await gsheetDb.getProjects(),
+    async () => await gsheetDb.getTeamMembers()
+  );
 });
