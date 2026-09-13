@@ -9,8 +9,8 @@ export async function sendTelegramNotification(botToken, chatId, messageText) {
     };
   }
 
-  const cleanToken = botToken.trim();
-  const cleanChatId = chatId.trim();
+  const cleanToken = String(botToken || '').trim().replace(/^["']|["']$/g, '');
+  const cleanChatId = String(chatId || '').trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '');
   const url = `https://api.telegram.org/bot${cleanToken}/sendMessage`;
 
   try {

@@ -22,7 +22,10 @@ export default function TelegramSettingsModal({ isOpen, onClose, config, onSaveC
   if (!isOpen) return null;
 
   const handleTestConnection = async () => {
-    if (!botToken || !defaultChatId) {
+    const cleanToken = botToken.trim().replace(/^["']|["']$/g, '');
+    const cleanChatId = defaultChatId.trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '');
+
+    if (!cleanToken || !cleanChatId) {
       setTestResult({ success: false, error: 'Please enter Bot Token and Chat ID first.' });
       return;
     }
@@ -31,7 +34,7 @@ export default function TelegramSettingsModal({ isOpen, onClose, config, onSaveC
     setTestResult(null);
 
     try {
-      const res = await axios.post('/api/telegram/test', { botToken, chatId: defaultChatId });
+      const res = await axios.post('/api/telegram/test', { botToken: cleanToken, chatId: cleanChatId });
       setTestResult({ success: true, message: res.data.message });
     } catch (err) {
       const errVal = err.response?.data?.error || err.response?.data || err.message;
@@ -48,8 +51,8 @@ export default function TelegramSettingsModal({ isOpen, onClose, config, onSaveC
   const handleSave = (e) => {
     e.preventDefault();
     onSaveConfig({
-      botToken,
-      defaultChatId,
+      botToken: botToken.trim().replace(/^["']|["']$/g, ''),
+      defaultChatId: defaultChatId.trim().replace(/^["']|["']$/g, '').replace(/\s+/g, ''),
       notifyOnTaskCreate,
       notifyOnStatusChange
     });

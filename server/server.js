@@ -335,14 +335,21 @@ app.get('/api/telegram/config', async (req, res) => {
 });
 
 app.post('/api/telegram/config', async (req, res) => {
-  const updated = await gsheetDb.saveTelegramConfig(req.body);
+  const cleanBody = {
+    ...req.body,
+    botToken: String(req.body.botToken || '').trim().replace(/^["']|["']$/g, ''),
+    defaultChatId: String(req.body.defaultChatId || '').trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '')
+  };
+  const updated = await gsheetDb.saveTelegramConfig(cleanBody);
   await gsheetDb.addActivityLog('Admin', 'Telegram Config Updated', 'Bot settings updated', 'N/A');
   res.json(updated);
 });
 
 app.post('/api/telegram/test', async (req, res) => {
-  const { botToken, chatId } = req.body;
-  if (!botToken || !chatId) {
+  const cleanToken = String(req.body.botToken || '').trim().replace(/^["']|["']$/g, '');
+  const cleanChatId = String(req.body.chatId || '').trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '');
+  
+  if (!cleanToken || !cleanChatId) {
     return res.status(400).json({ error: 'Bot Token and Chat ID are required for testing' });
   }
 
@@ -353,13 +360,13 @@ app.post('/api/telegram/test', async (req, res) => {
     `----------------------------------------\n` +
     `<i>You will now receive automatic alerts when team tasks are created or updated.</i>`;
 
-  const result = await sendTelegramNotification(botToken, chatId, testMessage);
+  const result = await sendTelegramNotification(cleanToken, cleanChatId, testMessage);
   
   if (result.success) {
-    await gsheetDb.addActivityLog('Admin', 'Telegram Test Sent', `Test notification sent to chat ${chatId}`, 'Sent ✅');
+    await gsheetDb.addActivityLog('Admin', 'Telegram Test Sent', `Test notification sent to chat ${cleanChatId}`, 'Sent ✅');
     res.json({ success: true, message: 'Test message sent successfully to Telegram!' });
   } else {
-    await gsheetDb.addActivityLog('Admin', 'Telegram Test Failed', `Failed sending test to ${chatId}: ${result.error}`, 'Failed ❌');
+    await gsheetDb.addActivityLog('Admin', 'Telegram Test Failed', `Failed sending test to ${cleanChatId}: ${result.error}`, 'Failed ❌');
     res.status(400).json({ success: false, error: result.error });
   }
 });
