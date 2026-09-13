@@ -1,0 +1,9 @@
+{
+  "name": "tdl-tele-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server/server.js",
+    "build": "cd client && npm install && npm run build && cd ../server && npm install"
+  }
+}
