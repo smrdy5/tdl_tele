@@ -93,7 +93,7 @@ function setupDatabaseSheets() {
   
   ensureSheet(ss, 'Projects', [
     ['id', 'name', 'code', 'status', 'startDate', 'endDate', 'assignedTeamCount', 'description'],
-    ['proj-1', 'AI Invoice Generation for M.Y.H Business and Tax Consultant', 'AI-MYH', 'Active', '2026-09-13', '2026-12-31', '0', 'AI-powered automated invoice processing and tax consulting portal.']
+    ['proj-1', 'AI Invoice Generation for M.Y.H Business and Tax Consultant', 'AI-MYH', 'Active', '2026-09-12T17:00:00.000Z', '2026-12-30T17:00:00.000Z', '0', 'AI-powered automated invoice processing and tax consulting portal.']
   ]);
   
   ensureSheet(ss, 'TeamMembers', [

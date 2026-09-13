@@ -1,6 +1,20 @@
 import React from 'react';
 import { CheckCircle2, Calendar, Users, ArrowLeft } from 'lucide-react';
 
+const formatDate = (dateStr, defaultStr) => {
+  if (!dateStr) return defaultStr;
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const year = d.getUTCFullYear();
+      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+  } catch (e) {}
+  return String(dateStr).split('T')[0] || defaultStr;
+};
+
 export default function ProjectStats({ activeProject, totalMembers }) {
   if (!activeProject) return null;
 
@@ -47,7 +61,7 @@ export default function ProjectStats({ activeProject, totalMembers }) {
           </div>
           <div>
             <div className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Start Date</div>
-            <div className="text-base font-bold text-slate-800">{activeProject.startDate || '2026-07-25'}</div>
+            <div className="text-base font-bold text-slate-800">{formatDate(activeProject.startDate, '2026-09-12')}</div>
           </div>
         </div>
 
@@ -58,7 +72,7 @@ export default function ProjectStats({ activeProject, totalMembers }) {
           </div>
           <div>
             <div className="text-[11px] font-bold text-purple-600 uppercase tracking-wider">End Date</div>
-            <div className="text-base font-bold text-slate-800">{activeProject.endDate || '2026-10-03'}</div>
+            <div className="text-base font-bold text-slate-800">{formatDate(activeProject.endDate, '2026-12-30')}</div>
           </div>
         </div>
 

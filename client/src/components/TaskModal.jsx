@@ -8,7 +8,7 @@ export default function TaskModal({ isOpen, onClose, onSubmit, teamMembers, acti
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [customAssigneeName, setCustomAssigneeName] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [dueDate, setDueDate] = useState('2026-09-25');
+  const [dueDate, setDueDate] = useState('2026-12-30');
   const [createdBy, setCreatedBy] = useState('Admin');
 
   useEffect(() => {

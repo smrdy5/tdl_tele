@@ -13,8 +13,8 @@ const initialData = {
       name: "AI Invoice Generation for M.Y.H Business and Tax Consultant",
       code: "AI-MYH",
       status: "Active",
-      startDate: "2026-09-13",
-      endDate: "2026-12-31",
+      startDate: "2026-09-12T17:00:00.000Z",
+      endDate: "2026-12-30T17:00:00.000Z",
       assignedTeamCount: 0,
       description: "AI-powered automated invoice processing, OCR data extraction, and tax consulting portal system."
     }
